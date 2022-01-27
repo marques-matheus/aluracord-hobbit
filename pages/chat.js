@@ -31,10 +31,10 @@ export default function ChatPage() {
 
 
     function handleDeleteMessage(id) {
-        const apagarElementoLista = listaMensagens.filter(
+        const apaga = listaMensagens.filter(
             (mensagem) => mensagem.id !== id
         );
-        setListamensagens(apagarElementoLista);
+        setListamensagens(apaga);
     }
    
 
