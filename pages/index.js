@@ -78,7 +78,7 @@ export default function PaginaInicial() {
                         as="form"
                         onSubmit={function (event) {
                             event.preventDefault()
-                            roteamento.push('/chat')
+                            roteamento.push(`/chat?username=${username}`)
 
 
                         }}
@@ -97,8 +97,6 @@ export default function PaginaInicial() {
                             onChange={function (event) {
                                 const valor = event.target.value;
                                 setUsername(valor);
-                               
-                              
                             }}
                             fullWidth
                             textFieldColors={{
@@ -163,7 +161,7 @@ export default function PaginaInicial() {
                             {username}
                             
                         </Text>
-
+                        
                         <Text
                         variant="body4"
                             styleSheet={{
@@ -175,6 +173,19 @@ export default function PaginaInicial() {
                             }}>
                         
                             <p>{dadosGit.name}</p>
+                        </Text>
+
+                        <Text
+                        variant="body4"
+                            styleSheet={{
+                                color: appConfig.theme.colors.neutrals[200],
+                                backgroundColor: appConfig.theme.colors.primary[100],
+                                padding: '3px 10px',
+                                marginTop: '2px',
+                                borderRadius: '1000px'
+                            }}>
+                        
+                            <p>{dadosGit.location}</p>
                         </Text>
                     </Box>
                     {/* Photo Area */}

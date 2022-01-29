@@ -1,31 +1,73 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
-import { FaTelegramPlane, FaTimes } from 'react-icons/fa'
+import { FaTelegramPlane, FaTimes } from 'react-icons/fa';
+import { createClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/router';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
+
+
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SupabaseClient = createClient(URL, ANON_KEY)
 
 
 
+function realTime(adicionaMensagem) {
 
+    return SupabaseClient.from('mensagens')
+        .on('INSERT', (respLive) => {
+            adicionaMensagem(respLive.new);
+        }).subscribe();
+
+}
 
 export default function ChatPage() {
     // Sua lógica vai aqui
     const [mensagem, setmensagem] = React.useState('');
     const [listaMensagens, setListamensagens] = React.useState([])
+    const roteamento = useRouter();
+    const usuarioLogado = roteamento.query.username;
+
+    React.useEffect(() => {
+        SupabaseClient
+            .from('mensagens')
+            .select('*')
+            .order('id', { ascending: false })
+            .then(({ data }) => {
+                setListamensagens(data)
+            });
+
+
+        realTime((novaMensagem) => {
+            setListamensagens((valorDaLista) => {
+                return [
+                    novaMensagem,
+                    ...valorDaLista,
+                ]
+            });
+        });
+
+    }, []);
+
 
     function handlerNovaMensagem(novaMensagem) {
         const mensagem = {
-            id: listaMensagens.length,
-            de: 'Matheus',
+
+            de: usuarioLogado,
             texto: novaMensagem
         }
 
 
 
-        setListamensagens([
-            mensagem,
-            ...listaMensagens,
-        ])
-        setmensagem('');
+        SupabaseClient
+            .from('mensagens')
+            .insert([
+                mensagem
+            ]).then(({ data }) => {
+
+            });
+        setmensagem('')
     }
 
 
@@ -36,7 +78,8 @@ export default function ChatPage() {
         );
         setListamensagens(apaga);
     }
-   
+
+
 
 
     // ./Sua lógica vai aqui
@@ -78,7 +121,7 @@ export default function ChatPage() {
                     }}
                 >
 
-                    <MessageList mensagens={listaMensagens} deleteMessage={handleDeleteMessage}  setListamensagens={setListamensagens} />
+                    <MessageList mensagens={listaMensagens} deleteMessage={handleDeleteMessage} setListamensagens={setListamensagens} />
 
 
                     <Box
@@ -122,20 +165,30 @@ export default function ChatPage() {
                                 handlerNovaMensagem(mensagem);
                             }}
                             styleSheet={{
-                                width: '35px',
-                                height: '35px',
-                                border: '0',
-                                borderRadius: '50px',
-
+                                borderRadius: '50%',
+                                padding: '0 3px 0 0',
+                                minWidth: '35px',
+                                minHeight: '35px',
+                                fontSize: '20px',
+                                marginRight: '5px',
+                                marginBottom: '8px',
+                                lineHeight: '0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                             }}
                             buttonColors={{
                                 contrastColor: appConfig.theme.colors.neutrals["000"],
                                 mainColor: appConfig.theme.colors.primary[700]
                             }}>
-
-
-
                         </Button>
+                        <ButtonSendSticker
+
+                            onStickerClick={(sticker) => {
+                                handlerNovaMensagem(`:sticker: ${sticker}`)
+                                console.log('sticker')
+                            }}
+                        />
                     </Box>
                 </Box>
             </Box>
@@ -169,7 +222,7 @@ function MessageList(props) {
             tag="ul"
             styleSheet={{
 
-                overflow: 'scroll',
+                overflow: 'auto',
                 display: 'flex',
                 flexDirection: 'column-reverse',
                 flex: 1,
@@ -204,7 +257,7 @@ function MessageList(props) {
                                     display: 'inline-block',
                                     marginRight: '8px',
                                 }}
-                                src={`https://github.com/marques-matheus.png`}
+                                src={`https://github.com/${mensagem.de}.png`}
                             />
                             <Text tag="strong">
                                 {mensagem.de}
@@ -220,9 +273,9 @@ function MessageList(props) {
                                 {(new Date().toLocaleDateString())}
                             </Text>
                             <Button
-                                onClick={(event)=>{
+                                onClick={(event) => {
                                     event.preventDefault();
-                                handlerDeleteMessage(mensagem.id);
+                                    handlerDeleteMessage(mensagem.id);
                                 }}
                                 label={<FaTimes />}
                                 styleSheet={{
@@ -235,20 +288,25 @@ function MessageList(props) {
                                     }
                                 }}
 
-                            
+
 
                             />
                         </Box>
-                        {mensagem.texto}
+                        {mensagem.texto.startsWith(':sticker:')
+                            ? (
+                                <Image src={mensagem.texto.replace(':sticker:', '')}
+                                    styleSheet={{
+                                        maxWidth: '70%',
+                                        maxHeight: '70%'
+                                    }} />
+                            )
+                            : (
+                                mensagem.texto
+                            )}
+                        {/*{mensagem.texto}*/}
                     </Text>
-
-
                 )
             })}
-
-
-
-
         </Box>
     )
 }
