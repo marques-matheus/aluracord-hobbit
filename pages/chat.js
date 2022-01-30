@@ -19,9 +19,10 @@ function realTime(msgModificada) {
     return SupabaseClient.from('mensagens')
         .on('*', (respLive) => {
             if (respLive.eventType === 'INSERT') {
-                msgModificada.new
+                
+                msgModificada('INSERT', respLive.new)
             } else if (respLive.eventType === 'DELETE') {
-                msgModificada.old
+                msgModificada('DELETE', respLive.old)
             }
         })
         .subscribe()
@@ -49,7 +50,8 @@ export default function ChatPage() {
         realTime((eventType, msg) => {
             if (eventType === 'INSERT') {
                 setListamensagens((valorAtual) => {
-                    return [msg, ...valorAtual]
+                    return [msg, 
+                        ...valorAtual]
                 })
             } else if (eventType === 'DELETE') {
                 setListamensagens((valorAtual) => {
@@ -85,6 +87,10 @@ export default function ChatPage() {
 
 
 
+    
+
+
+
 
     // ./Sua lógica vai aqui
     return (
@@ -111,7 +117,7 @@ export default function ChatPage() {
                     padding: '32px',
                 }}
             >
-                <Header />
+                <Header user = {usuarioLogado} />
                 <Box
                     styleSheet={{
                         position: 'relative',
@@ -167,7 +173,7 @@ export default function ChatPage() {
                         />
 
                         <Button
-                            label={<FaTelegramPlane />}
+                            label='➹'
                             onClick={(event) => {
                                 event.preventDefault();
                                 handlerNovaMensagem(mensagem);
@@ -204,13 +210,27 @@ export default function ChatPage() {
     )
 }
 
-function Header() {
+function Header(props) {
     return (
         <>
             <Box styleSheet={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
-                <Text variant='heading5'>
-                    Chat
-                </Text>
+                <Box styleSheet={{ display: 'flex' , flexDirection: 'row', width: '35%', alignItems: 'center', justifyContent: 'left'}}>
+                    <Image 
+                        src={`https://github.com/${props.user}.png`}
+                        styleSheet={{
+                            width: '15%',
+                            borderRadius: '50px'
+                        }}
+                    />
+                    <Text 
+                        variant='heading5'
+                        styleSheet={{
+                            marginLeft: '1rem',
+                            fontSize: '16px'
+                        }}>
+                            {props.user}                     
+                    </Text>
+                </Box>
                 <Button
                     variant='tertiary'
                     colorVariant='neutral'

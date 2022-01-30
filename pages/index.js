@@ -159,7 +159,7 @@ export default function PaginaInicial() {
                         <Text
                             variant="body4"
                             styleSheet={{
-                                color: appConfig.theme.colors.neutrals[400],
+                                color: appConfig.theme.colors.neutrals[200],
 
                                 padding: '3px 10px',
                                 borderRadius: '1000px'
@@ -171,7 +171,7 @@ export default function PaginaInicial() {
                         <Text
                             variant="body4"
                             styleSheet={{
-                                color: appConfig.theme.colors.neutrals[400],
+                                color: appConfig.theme.colors.neutrals[200],
                                 padding: '3px 10px',
                                 marginTop: '2px',
                                 borderRadius: '1000px'
