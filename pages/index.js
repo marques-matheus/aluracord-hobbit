@@ -9,6 +9,7 @@ import { useRouter } from 'next/router'
 
 
 
+
 function Titulo(props) {
     const Tag = props.tag || 'h1';
     return (
@@ -28,11 +29,10 @@ function Titulo(props) {
 
 export default function PaginaInicial() {
     const [username, setUsername] = React.useState('');
-    const [img, setImg] = React.useState('')
     const roteamento = useRouter();
     const [dadosGit, setDadosGit] = React.useState({});
 
-   React.useEffect(() => {
+    React.useEffect(() => {
         fetch(`https://api.github.com/users/${username}`, {
             headers: {
                 'Accept': 'application/vnd.github.v3+json'
@@ -43,8 +43,9 @@ export default function PaginaInicial() {
             }).then(data => {
                 setDadosGit(data)
 
-            }).catch(error => console.error(error));}, [username])
-            
+            }).catch(error => console.error(error));
+    }, [username])
+
 
 
 
@@ -137,55 +138,50 @@ export default function PaginaInicial() {
                             minHeight: '240px',
                         }}
                     >
+
                         <Image
                             styleSheet={{
                                 borderRadius: '50%',
                                 marginBottom: '16px',
                             }}
-                                                          
-                            
-                           src={`https://github.com/${username}.png`}
 
+                            src={username.length > 2 ?
+
+                                `https://github.com/${username}.png`
+                                :
+                                'https://logoeps.com/wp-content/uploads/2013/06/the-one-ring-vector-logo.png'
+
+                            }
 
 
                         />
+
                         <Text
                             variant="body4"
                             styleSheet={{
-                                color: appConfig.theme.colors.neutrals[200],
-                                backgroundColor: appConfig.theme.colors.primary[100],
+                                color: appConfig.theme.colors.neutrals[400],
+
                                 padding: '3px 10px',
                                 borderRadius: '1000px'
                             }}
                         >
                             {username}
-                            
-                        </Text>
-                        
-                        <Text
-                        variant="body4"
-                            styleSheet={{
-                                color: appConfig.theme.colors.neutrals[200],
-                                backgroundColor: appConfig.theme.colors.primary[100],
-                                padding: '3px 10px',
-                                marginTop: '2px',
-                                borderRadius: '1000px'
-                            }}>
-                        
-                            <p>{dadosGit.name}</p>
-                        </Text>
 
+                        </Text>
                         <Text
-                        variant="body4"
+                            variant="body4"
                             styleSheet={{
                                 color: appConfig.theme.colors.neutrals[200],
-                                backgroundColor: appConfig.theme.colors.primary[100],
                                 padding: '3px 10px',
                                 marginTop: '2px',
                                 borderRadius: '1000px'
                             }}>
-                        
-                            <p>{dadosGit.location}</p>
+
+                            {username.length >= 2
+                                ? <p>{dadosGit.location}</p>
+                                : ''
+                            }
+
                         </Text>
                     </Box>
                     {/* Photo Area */}

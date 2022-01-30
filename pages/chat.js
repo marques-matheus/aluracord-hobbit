@@ -7,20 +7,26 @@ import { useRouter } from 'next/router';
 import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
 
 
+
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SupabaseClient = createClient(URL, ANON_KEY)
 
 //
 
-function realTime(adicionaMensagem) {
+function realTime(msgModificada) {
 
     return SupabaseClient.from('mensagens')
-        .on('INSERT', (respLive) => {
-            adicionaMensagem(respLive.new);
-        }).subscribe();
-
+        .on('*', (respLive) => {
+            if (respLive.eventType === 'INSERT') {
+                msgModificada.new
+            } else if (respLive.eventType === 'DELETE') {
+                msgModificada.old
+            }
+        })
+        .subscribe()
 }
+
 
 export default function ChatPage() {
     // Sua lógica vai aqui
@@ -28,6 +34,7 @@ export default function ChatPage() {
     const [listaMensagens, setListamensagens] = React.useState([])
     const roteamento = useRouter();
     const usuarioLogado = roteamento.query.username;
+
 
     React.useEffect(() => {
         SupabaseClient
@@ -39,15 +46,21 @@ export default function ChatPage() {
             });
 
 
-        realTime((novaMensagem) => {
-            setListamensagens((valorDaLista) => {
-                return [
-                    novaMensagem,
-                    ...valorDaLista,
-                ]
-            });
-        });
-
+        realTime((eventType, msg) => {
+            if (eventType === 'INSERT') {
+                setListamensagens((valorAtual) => {
+                    return [msg, ...valorAtual]
+                })
+            } else if (eventType === 'DELETE') {
+                setListamensagens((valorAtual) => {
+                    return (
+                        valorAtual.filter((msgSelecioanda) => {
+                            return msgSelecioanda.id != msg.id
+                        })
+                    )
+                })
+            }
+        })
     }, []);
 
 
@@ -68,15 +81,6 @@ export default function ChatPage() {
 
             });
         setmensagem('')
-    }
-
-
-
-    function handleDeleteMessage(id) {
-        const apaga = listaMensagens.filter(
-            (mensagem) => mensagem.id !== id
-        );
-        setListamensagens(apaga);
     }
 
 
@@ -121,7 +125,9 @@ export default function ChatPage() {
                     }}
                 >
 
-                    <MessageList mensagens={listaMensagens} deleteMessage={handleDeleteMessage} setListamensagens={setListamensagens} />
+                    <MessageList mensagens={listaMensagens} 
+                    setListamensagens={setListamensagens} 
+                    SupabaseClient={SupabaseClient}/>
 
 
                     <Box
@@ -157,7 +163,9 @@ export default function ChatPage() {
                                 marginRight: '12px',
                                 color: appConfig.theme.colors.neutrals[200],
                             }}
+
                         />
+
                         <Button
                             label={<FaTelegramPlane />}
                             onClick={(event) => {
@@ -215,7 +223,21 @@ function Header() {
 }
 
 function MessageList(props) {
-    const handlerDeleteMessage = props.deleteMessage
+
+    function handlerDeleteMsg(id) {
+        const listaFiltrada = props.mensagens.filter(
+            mensagemFitlrada => mensagemFitlrada.id !== id
+        );
+
+        props.SupabaseClient
+            .from('mensagens')
+            .delete()
+            .match({ id: id })
+            .then(() => {
+                props.setListamensagens(listaFiltrada)
+            })
+
+    }
 
     return (
         <Box
@@ -251,6 +273,30 @@ function MessageList(props) {
                         >
                             <Image
                                 styleSheet={{
+                                    pointer: 'cursor'
+                                }}
+                                onMouseOver={
+                                    () => {
+
+                                        console.log('mouseover')
+                                        return (
+                                            <Box
+                                                styleSheet={{
+                                                    width: '150px',
+                                                    height: '200px'
+                                                }}
+
+
+                                            >
+                                                <Text>
+                                                    Teste
+                                                </Text>
+
+                                            </Box>
+                                        )
+                                    }
+                                }
+                                styleSheet={{
                                     width: '20px',
                                     height: '20px',
                                     borderRadius: '50%',
@@ -275,7 +321,7 @@ function MessageList(props) {
                             <Button
                                 onClick={(event) => {
                                     event.preventDefault();
-                                    handlerDeleteMessage(mensagem.id);
+                                    handlerDeleteMsg(mensagem.id);
                                 }}
                                 label={<FaTimes />}
                                 styleSheet={{
