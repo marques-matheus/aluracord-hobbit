@@ -10,7 +10,7 @@ const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SupabaseClient = createClient(URL, ANON_KEY);
 
-//
+//dasdasd
 
 function realTime(msgModificada) {
   return SupabaseClient.from("mensagens")
